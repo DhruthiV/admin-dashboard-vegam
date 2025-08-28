@@ -50,7 +50,10 @@ export function useToggleUserStatus(
 
     //when update does not happen
     onError: (variables, context) => {
-      queryClient.setQueryData(["users-list", params], context?.previousUsers);
+      const ctx = context as { previousUsers?: any };
+      if (ctx.previousUsers) {
+        queryClient.setQueryData(["users-list", params], ctx.previousUsers);
+      }
       onError(`Failed to change user status for ${variables.name || "user"}`);
     },
 

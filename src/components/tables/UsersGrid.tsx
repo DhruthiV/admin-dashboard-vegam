@@ -17,7 +17,7 @@ import { useToggleUserStatus } from "./hooks/useToggleUserStatus";
 
 type ProcessedUser = User & {
   groupName: string;
-  role: string;
+  role: "admin" | "manager" | "member" | "";
 };
 
 export function UsersGrid() {
@@ -32,14 +32,18 @@ export function UsersGrid() {
   });
 
   //snackbar part
-  const [snackbar, setSnackbar] = useState({
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "error" | "success";
+  }>({
     open: false,
     message: "",
     severity: "error",
   });
 
   const handleCloseSnackbar = (
-    event?: React.SyntheticEvent | Event,
+    _event?: React.SyntheticEvent | Event,
     reason?: string
   ) => {
     if (reason === "clickaway") {
@@ -76,11 +80,22 @@ export function UsersGrid() {
     return (
       data?.users?.map((user) => ({
         ...user,
-        groupName: user.groups?.[0]?.groupname || "",
-        role: user.groups?.[0]?.roles?.[0]?.rolename || "",
+        groupName: user.groups?.[0]?.name || "",
+        role: user.groups?.[0]?.role?.[0]?.name || "",
       })) ?? []
     );
   }, [data]);
+
+  // const ChiplistCell: MRT_ColumnDef<User>["Cell"] = ({ cell }) => {
+  //   const groups = cell.getValue<Group[]>();
+  //   return (
+  //     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+  //       {groups.map((group) => (
+  //         <Chip key={group.id} label={group.name} size="small" />
+  //       ))}
+  //     </Box>
+  //   );
+  // };
 
   const columns = useMemo<MRT_ColumnDef<ProcessedUser>[]>(
     () => [
