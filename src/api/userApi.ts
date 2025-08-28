@@ -23,8 +23,8 @@ export async function getUsers(params: {
 }
 
 //patch to users
-export const updateUserStatus = async (userId: string): Promise<User> => {
-  const response = await fetch(`/api/users/${userId}`, {
+export const updateUserStatus = async (id: string): Promise<User> => {
+  const response = await fetch(`/api/users/${id}`, {
     method: "PATCH",
   });
   if (!response.ok) {
