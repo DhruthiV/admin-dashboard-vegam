@@ -9,7 +9,7 @@ export const handlers = [
     const url = new URL(request.request.url);
     const query = url.searchParams.get("query")?.toLowerCase() || "";
     console.log("MSW received query:", query);
-    const page = parseInt(url.searchParams.get("page") || "1");
+    const page = parseInt(url.searchParams.get("page") || "0");
     const pageSize = parseInt(url.searchParams.get("pageSize") || "10");
 
     //get the filter data
@@ -17,19 +17,20 @@ export const handlers = [
       const searchTerm = query.toLowerCase();
       const nameMatch = user.name?.toLowerCase().includes(searchTerm);
       const emailMatch = user.email?.toLowerCase().includes(searchTerm);
-      const groupMatch = user.groups?.[0]?.groupname
-        ?.toLowerCase()
-        .includes(searchTerm);
-      const roleMatch = user.groups?.[0]?.roles?.[0]?.rolename
-        ?.toLowerCase()
-        .includes(searchTerm);
+      const groupMatch = user.groups?.some((g) =>
+        g.name.toLowerCase().includes(searchTerm)
+      );
+
+      const roleMatch = user.groups?.some((g) =>
+        g.role.toLowerCase().includes(searchTerm)
+      );
 
       return nameMatch || emailMatch || groupMatch || roleMatch;
     });
 
     //pagination part
     const totalCount = filteredUsers.length;
-    const startIndex = (page - 1) * pageSize;
+    const startIndex = page * pageSize;
     const endIndex = startIndex + pageSize;
     const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
@@ -42,7 +43,7 @@ export const handlers = [
   //patch endpoint
   http.patch("/api/users/:id", ({ params }) => {
     const id = params.id;
-    const userToUpdate = userData.find((user) => user.userId === id);
+    const userToUpdate = userData.find((user) => user.id === id);
 
     //user not found to update
     if (!userToUpdate) {
