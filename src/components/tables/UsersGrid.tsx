@@ -7,13 +7,14 @@ import {
   type MRT_SortingState,
 } from "material-react-table";
 
-import { IconButton, Tooltip, Chip, Snackbar, Alert } from "@mui/material";
+import { IconButton, Tooltip, Chip, Snackbar, Alert, Box } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
 import { useFetchUser } from "./hooks/useFetchUserHook";
 import { useState, useMemo } from "react";
 import type { User } from "../../mocks/types";
 import { useToggleUserStatus } from "./hooks/useToggleUserStatus";
+import { columnsMetaData } from "./columnsMetaData";
 
 type ProcessedUser = User & {
   groupName: string;
@@ -27,7 +28,7 @@ export function UsersGrid() {
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<MRT_SortingState>([]);
   const [pagination, setPagination] = useState<MRT_PaginationState>({
-    pageIndex: 1,
+    pageIndex: 0,
     pageSize: 10,
   });
 
@@ -75,90 +76,76 @@ export function UsersGrid() {
 
   console.log(data);
 
-  //needs attention
   const usersData = useMemo(() => {
     return (
       data?.users?.map((user) => ({
         ...user,
         groupName: user.groups?.[0]?.name || "",
-        role: user.groups?.[0]?.role?.[0]?.name || "",
+        role: user.groups?.[0]?.role || "",
       })) ?? []
     );
   }, [data]);
 
-  // const ChiplistCell: MRT_ColumnDef<User>["Cell"] = ({ cell }) => {
-  //   const groups = cell.getValue<Group[]>();
-  //   return (
-  //     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-  //       {groups.map((group) => (
-  //         <Chip key={group.id} label={group.name} size="small" />
-  //       ))}
-  //     </Box>
-  //   );
-  // };
-
+  //metadriven columns
   const columns = useMemo<MRT_ColumnDef<ProcessedUser>[]>(
-    () => [
-      {
-        accessorKey: "userId",
-        header: "ID",
-        grow: false,
-        size: 50,
-      },
-      {
-        accessorKey: "name",
-        header: "Name",
-      },
-      {
-        accessorKey: "email",
-        header: "Email",
-      },
-      {
-        accessorKey: "groupName",
-        header: "Group Name",
-        grow: false,
-        size: 50,
-      },
-      {
-        accessorKey: "role",
-        header: "Role",
-        grow: false,
-        size: 50,
-      },
-      //chips for status part
-      {
-        accessorKey: "status",
-        header: "Status",
-        Cell: ({ cell, row }) => {
-          const user = row.original;
-          const status = cell.getValue<"active" | "inactive">();
-          const color = status === "active" ? "success" : "default";
-
-          const handleClick = () => {
-            toggleUserStatus(user);
+    () =>
+      columnsMetaData.map((meta) => {
+        if (meta.type === "badge" && meta.key === "status") {
+          return {
+            accessorKey: meta.key,
+            header: meta.header,
+            Cell: ({ cell, row }) => {
+              const user = row.original;
+              const status = cell.getValue<"active" | "inactive">();
+              const color = status === "active" ? "success" : "default";
+              return (
+                <Chip
+                  label={status}
+                  color={color}
+                  onClick={() => toggleUserStatus(user)}
+                  sx={{ cursor: "pointer" }}
+                />
+              );
+            },
+            size: meta.width,
           };
+        }
 
-          return (
-            <Chip
-              label={status}
-              color={color}
-              onClick={handleClick}
-              sx={{ cursor: "pointer" }}
-            />
-          );
-        },
-        grow: false,
-        size: 50,
-      },
-      {
-        accessorKey: "createdAt",
-        header: "Created At",
-        Cell: ({ cell }) =>
-          new Date(cell.getValue<string>()).toLocaleDateString(),
-        grow: false,
-        size: 100,
-      },
-    ],
+        if (meta.type === "date") {
+          return {
+            accessorKey: meta.key,
+            header: meta.header,
+            Cell: ({ cell }) =>
+              new Date(cell.getValue<string>()).toLocaleDateString(),
+            size: meta.width,
+          };
+        }
+
+        if (meta.type === "chiplist" && meta.key === "groups") {
+          return {
+            accessorKey: meta.key,
+            header: meta.header,
+
+            Cell: ({ row }) => (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                {row.original.groups?.map((g) => (
+                  <Chip key={g.id} label={g.name} size="small" />
+                ))}
+              </Box>
+            ),
+            size: meta.width,
+            enableSorting: false,
+            filterVariant: "multi-select",
+          };
+        }
+
+        return {
+          accessorKey: meta.key,
+          header: meta.header,
+          size: meta.width,
+          enableSorting: meta.sorting || false,
+        };
+      }),
     [toggleUserStatus]
   );
 
@@ -166,7 +153,7 @@ export function UsersGrid() {
     columns,
     data: usersData,
     initialState: { showColumnFilters: true },
-    manualFiltering: false, //filtering needs attention
+    manualFiltering: false,
     manualPagination: true,
     manualSorting: false,
     muiToolbarAlertBannerProps: isError
