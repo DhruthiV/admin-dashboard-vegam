@@ -4,7 +4,10 @@ import App from "./App";
 
 //for that mock api stuff
 async function enableMocking() {
-  if (import.meta.env.MODE !== "development") {
+  // if (import.meta.env.MODE !== "development") {
+  //   return;
+  // }
+  if (import.meta.env.PROD) {
     return;
   }
   const { worker } = await import("./mocks/browser");
