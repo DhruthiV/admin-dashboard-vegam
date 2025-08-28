@@ -73,9 +73,6 @@ export function UsersGrid() {
         setSnackbar({ open: true, message, severity: "error" }),
     }
   );
-
-  console.log(data);
-
   const usersData = useMemo(() => {
     return (
       data?.users?.map((user) => ({
