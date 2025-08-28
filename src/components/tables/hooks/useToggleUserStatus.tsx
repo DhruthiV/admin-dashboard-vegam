@@ -16,7 +16,7 @@ export function useToggleUserStatus(
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (user: User) => updateUserStatus(user.userId),
+    mutationFn: (user: User) => updateUserStatus(user.id),
 
     onMutate: async (userToUpdate) => {
       // stop other fetching parts
@@ -30,7 +30,7 @@ export function useToggleUserStatus(
         return {
           ...oldData,
           users: oldData.users.map((user: User) =>
-            user.userId === userToUpdate.userId
+            user.id === userToUpdate.id
               ? {
                   ...user,
                   status:
