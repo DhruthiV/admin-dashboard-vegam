@@ -16,11 +16,7 @@ export function useToggleUserStatus(
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (user: User) =>
-      updateUserStatus(
-        user.userId,
-        user.status === "active" ? "inactive" : "active"
-      ),
+    mutationFn: (user: User) => updateUserStatus(user.userId),
 
     onMutate: async (userToUpdate) => {
       // stop other fetching parts
