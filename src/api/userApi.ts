@@ -23,14 +23,9 @@ export async function getUsers(params: {
 }
 
 //patch to users
-export const updateUserStatus = async (
-  userId: string,
-  status: string
-): Promise<User> => {
+export const updateUserStatus = async (userId: string): Promise<User> => {
   const response = await fetch(`/api/users/${userId}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status }),
   });
   if (!response.ok) {
     throw new Error("Failed to toggle user status");
